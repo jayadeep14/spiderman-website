@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spider-Man | Multiversos - Mixamo Sequence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background: #000;
+            font-family: 'Roboto', sans-serif;
+            transition: height 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        body.scroll-unlocked {
+            height: 300vh;
+        }
+
+        /* Top Navigation Header Styling - Forced Always Visible */
+        .site-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 9999; /* Ensure it stays above WebGL and all other content */
+            pointer-events: auto; /* Ensure header elements receive clicks always */
+        }
+
+        .site-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 30%; /* Leaves 15% transparent on the left */
+            background-color: #000000;
+            clip-path: polygon(0px 0px, 100% 0, 100% 100%, 60px 100%);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+            z-index: -1;
+            pointer-events: auto;
+        }
+
+        /* Header Content Container to align items inside the solid black section */
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 15%;
+            margin-left: 15%;
+            padding: 0 40px 0 300px; /* Extra left padding to clear the diagonal cut */
+            pointer-events: auto;
+            height: 100%;
+        }
+
+        .nav-left-group {
+            display: flex;
+            align-items: center;
+            gap: 50px;
+        }
+
+        .nav-logo {
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: #FF0000;
+            text-decoration: none;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links li a {
+            position: relative;
+            color: #FFFFFF;
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 8px 0;
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-links li a:hover {
+            color: #E21B23;
+        }
+
+        .nav-links li a::before,
+        .nav-links li a::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 2px;
+            background-color: #E21B23;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .nav-links li a::before { top: -2px; }
+        .nav-links li a::after { bottom: -2px; }
+
+        .nav-links li a:hover::before,
+        .nav-links li a:hover::after,
+        .nav-links li a.active::before,
+        .nav-links li a.active::after {
+            opacity: 1;
+        }
+
+        .nav-hamburger {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 28px;
+            height: 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            z-index: 10001;
+        }
+
+        .nav-hamburger span {
+            display: block;
+            width: 100%;
+            height: 3px;
+            background-color: #E21B23;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .site-bg-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -2;
+            background: url('4.jpg') no-repeat center center/cover;
+            transition: background-image 0.5s ease;
+        }
+
+        .site-bg-blur {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background-color: rgba(15, 0, 0, 0.2);
+            pointer-events: none;
+        }
+
+        #webgl-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        #sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 320px;
+            height: 100vh;
+            background: rgba(20, 20, 20, 0.85);
+            backdrop-filter: blur(10px);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            padding: 90px 20px 30px 20px;
+            box-sizing: border-box;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #sidebar.visible {
+            transform: translateX(0);
+        }
+
+        #sidebar-toggle {
+            position: fixed;
+            top: 95px;
+            right: 20px;
+            z-index: 1001;
+            background: #E21B23;
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(226, 27, 35, 0.4);
+            display: none; 
+            transition: background 0.2s;
+        }
+        #sidebar-toggle:hover {
+            background: #ff333d;
+        }
+
+        .sidebar-section h2 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+            color: #fff;
+        }
+
+        .sidebar-section p {
+            margin: 0 0 15px 0;
+            font-size: 13px;
+            color: #aaa;
+            line-height: 1.4;
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .slider-group label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #ddd;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .slider-group label span {
+            color: #E21B23;
+            font-family: monospace;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: #E21B23;
+            pointer-events: none;
+        }
+
+        #debug-btn {
+            position: fixed;
+            top: 95px;
+            left: 20px;
+            z-index: 999;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ccc;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        #debug-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .content {
+            position: fixed;
+            top: 55%;
+            left: 5%;
+            transform: translateY(-50%);
+            color: white;
+            padding: 25px;
+            z-index: 10;
+            pointer-events: auto;
+            max-width: 450px;
+            width: max-content;
+            
+            background: rgba(20, 20, 20, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            border-radius: 16px;
+            
+            opacity: 1;
+            visibility: visible;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .content.top-right {
+            top: 100px;
+            left: auto;
+            right: 5%;
+            transform: none;
+            padding-top: 25px;
+        }
+
+        .content p { 
+            margin: 15px 0 0 0; 
+            color: #d0d0d0; 
+            font-size: 15px; 
+            line-height: 1.6;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .action-btn {
+            background-color: #E21B23;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(226, 27, 35, 0.4);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .action-btn:hover { background-color: #ff333d; }
+        .action-btn:active { transform: scale(0.98); }
+
+        /* --- SPIDER-VERSE "ABOUT" MODAL CONTAINER STYLES --- */
+        .about-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            z-index: 10002;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .about-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .about-container {
+            background: #121214;
+            border: 2px solid #E21B23;
+            box-shadow: 0 0 40px rgba(226, 27, 35, 0.3), inset 0 0 20px rgba(0, 240, 255, 0.05);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 40px;
+            color: #ffffff;
+            position: relative;
+            transform: scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .about-overlay.active .about-container {
+            transform: scale(1);
+        }
+
+        .about-close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: 2px solid #ffffff;
+            color: #ffffff;
+            font-size: 18px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .about-close-btn:hover {
+            background: #E21B23;
+            border-color: #E21B23;
+            color: #ffffff;
+        }
+
+        .about-title {
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            font-size: 38px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #ffffff;
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 0px #E21B23;
+        }
+
+        .about-text {
+            color: #b3b3b3;
+            font-size: 15px;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .about-subtitle {
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            font-size: 24px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #00f0ff;
+            margin: 35px 0 20px 0;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .team-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .team-card:hover {
+            transform: translateY(-5px);
+            border-color: #00f0ff;
+            box-shadow: 0 6px 20px rgba(0, 240, 255, 0.15);
+        }
+
+        .team-name {
+            font-weight: 700;
+            font-size: 16px;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .team-role {
+            font-size: 13px;
+            color: #E21B23;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .team-stat {
+            font-family: monospace;
+            font-size: 12px;
+            color: #00f0ff;
+            background: rgba(0, 240, 255, 0.08);
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        /* -------------------------------------------------- */
+
+        @media(max-width: 768px) {
+            .site-header::before { left: 0; clip-path: none; }
+            .header-content { width: 100%; margin-left: 0; padding: 0 20px; }
+            .nav-links { display: none; }
+            .content {
+                top: auto;
+                bottom: 30px;
+                left: 20px;
+                right: 20px;
+                transform: none;
+                max-width: calc(100vw - 40px);
+                width: auto;
+            }
+            #sidebar {
+                width: 100%;
+                height: 50vh;
+                top: auto;
+                bottom: 0;
+                transform: translateY(100%);
+            }
+            #sidebar.visible { transform: translateY(0); }
+            .team-grid {
+                grid-template-columns: 1fr;
+            }
+            .about-container {
+                padding: 25px 20px;
+            }
+        }
+    </style>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <!-- Top Navigation Header -->
+    <header class="site-header">
+        <div class="header-content">
+            <div class="nav-left-group">
+                <a href="#" class="nav-logo">MARVEL</a>
+                <ul class="nav-links">
+                    <li><a href="#" class="active">HOME</a></li>
+                    <li><a href="./pages/tom-holland/spiderman1.html">CHARACTER</a></li>
+                    <li><a href="#" id="about-nav-btn">ABOUT</a></li>
+                    <li><a href="#">SHOP</a></li>
+                </ul>
+            </div>
+            <button class="nav-hamburger" id="hamburger-btn" aria-label="Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Immersive "About" View Modal Container -->
+    <div class="about-overlay" id="about-overlay">
+        <div class="about-container">
+            <button class="about-close-btn" id="about-close-btn">&times;</button>
+            <h2 class="about-title">The Origin Story</h2>
+            <p class="about-text">
+                Every neighborhood needs a protector, a beacon of hope standing between ordinary citizens and the chaos of the multiverse. We trace the steps of those who pull on the mask, driven by the timeless creed that with great power comes absolute responsibility.
+            </p>
+            <p class="about-text">
+                This digital sanctuary celebrates the rich history, multiversal variants, and iconic legacy of Spider-Man across generations. Whether swinging through skyscrapers or battling threats across dimensions, our mission is to honor the enduring spirit of resilience that lives inside every hero.
+            </p>
+
+            <h3 class="about-subtitle">The Team</h3>
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-name">Miles Morales</div>
+                    <div class="team-role">Lead Web-Slinger</div>
+                    <div class="team-stat">Agility: 95/100</div>
+                </div>
+                <div class="team-card">
+                    <div class="team-name">Gwen Stacy</div>
+                    <div class="team-role">Dimensional Scout</div>
+                    <div class="team-stat">Reflexes: 98/100</div>
+                </div>
+                <div class="team-card">
+                    <div class="team-name">Peter Parker</div>
+                    <div class="team-role">Tactical Mentor</div>
+                    <div class="team-stat">Experience: 100/100</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="site-bg-wrapper"></div>
+    <div class="site-bg-blur"></div>
+
+    <button id="debug-btn">Log Current Pose</button>
+    <button id="sidebar-toggle">Camera Controls</button>
+
+    <div id="sidebar">
+        <div class="sidebar-section">
+            <h2>Camera Inspector</h2>
+            <p id="sidebar-desc">Scroll down the page to smoothly </p>
+        </div>
+
+        <div class="slider-group">
+            <label for="camera-slider">Sequence Progress: <span id="slider-val">0.00</span></label>
+            <input type="range" id="camera-slider" min="0" max="1" step="0.001" value="0">
+        </div>
+    </div>
+
+    <div id="webgl-container"></div>
+
+    <div class="content" id="content-box">
+        <img src="1.png" alt="Spider-Man Icon" style="height: 180px; width: auto; object-fit: contain; display: block;">
+        <p id="status-text" style="font-size: 20px;">Playing sequence animations...</p>
+        
+        <!-- Action Buttons Container -->
+        <div id="action-buttons" class="button-group">
+            <button class="action-btn" onclick="window.open('https://www.youtube.com/watch?v=8TZMtslA3UY', '_blank');">Watch Trailer</button>
+            <button class="action-btn" onclick="window.open('https://in.bookmyshow.com/movies/kochi/spider-man-brand-new-day/buytickets/ET00502630/20260730', '_blank')">Book Tickets</button>
+        </div>
+    </div>
+
+    <!-- GSAP CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <script>
+        // Modal State Controller Logic
+        const aboutNavBtn = document.getElementById('about-nav-btn');
+        const aboutOverlay = document.getElementById('about-overlay');
+        const aboutCloseBtn = document.getElementById('about-close-btn');
+
+        aboutNavBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            aboutOverlay.classList.add('active');
+        });
+
+        aboutCloseBtn.addEventListener('click', () => {
+            aboutOverlay.classList.remove('active');
+        });
+
+        aboutOverlay.addEventListener('click', (e) => {
+            if (e.target === aboutOverlay) {
+                aboutOverlay.classList.remove('active');
+            }
+        });
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        const container = document.getElementById('webgl-container');
+        const contentBox = id => document.getElementById('content-box');
+        const scene = new THREE.Scene();
+
+        const cameraPose1 = { x: 120.14, y: 339.05, z: 569.12, targetX: -306.01, targetY: 197.15, targetZ: 212.93 };
+        const cameraPose2 = { x: 52.18, y: 144.28, z: 103.97, targetX: 44.53, targetY: 125.85, targetZ: -7.34 };
+        const cameraPose3 = { x: 138.83, y: 32.22, z: 3.53, targetX: 48.17, targetY: 39.93, targetZ: -23.22 };
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(cameraPose1.x, cameraPose1.y, cameraPose1.z);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.enabled = false;
+        controls.target.set(cameraPose1.targetX, cameraPose1.targetY, cameraPose1.targetZ);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 4);
+        scene.add(ambientLight);
+
+        let mixer;
+        let action1, action2;
+        let activeAction;
+        let scrollUnlocked = false;
+        const clock = new THREE.Clock();
+        const loader = new FBXLoader();
+
+        const modelPath = '6.fbx'; 
+        const anim1Path = '6.fbx'; 
+        const anim2Path = '1ed.fbx'; 
+
+        loader.load(modelPath, (model) => {
+            scene.add(model);
+            mixer = new THREE.AnimationMixer(model);
+
+            mixer.addEventListener('finished', (e) => {
+                if (e.action === action2) {
+                    switchToAction(action1, true); 
+
+                    camera.position.set(cameraPose2.x, cameraPose2.y, cameraPose2.z);
+                    controls.target.set(cameraPose2.targetX, cameraPose2.targetY, cameraPose2.targetZ);
+                    controls.update();
+
+                    scrollUnlocked = true;
+                    document.body.classList.add('scroll-unlocked');
+
+                    document.getElementById('status-text').innerText = "Animations complete. Scroll down to explore view states.";
+                    document.getElementById('sidebar-toggle').style.display = 'block';
+                    updateButtonVisibility();
+                }
+            });
+
+            loader.load(anim1Path, (anim1Object) => {
+                const clip1 = anim1Object.animations[0];
+                action1 = mixer.clipAction(clip1);
+                action1.setLoop(THREE.LoopRepeat);
+
+                loader.load(anim2Path, (anim2Object) => {
+                    const clip2 = anim2Object.animations[0];
+                    action2 = mixer.clipAction(clip2);
+                    
+                    action2.setLoop(THREE.LoopOnce);
+                    action2.clampWhenFinished = true;
+
+                    action2.play();
+                    activeAction = action2;
+                });
+            });
+        }, undefined, (error) => {
+            console.error('Error loading model/animations:', error);
+        });
+
+        function switchToAction(targetAction, loop = false) {
+            if (activeAction === targetAction) return;
+            if (loop) targetAction.setLoop(THREE.LoopRepeat);
+            if (activeAction) activeAction.stop();
+            targetAction.reset();
+            targetAction.play();
+            activeAction = targetAction;
+        }
+
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const cameraSlider = document.getElementById('camera-slider');
+        const sliderValDisplay = document.getElementById('slider-val');
+        const sidebarDesc = document.getElementById('status-text');
+        const actionButtons = document.getElementById('action-buttons');
+        const contentBoxEl = document.getElementById('content-box');
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('visible');
+            sidebarToggle.innerText = sidebar.classList.contains('visible') ? "Close Controls" : "Camera Controls";
+        });
+
+        function updateButtonVisibility() {
+            const targetText = "Scroll down the page to smoothly";
+            const or = "Animations complete. Scroll down to explore view states.";
+            if (sidebarDesc.innerText === targetText || sidebarDesc.innerText === or) {
+                actionButtons.style.display = 'flex';
+            } else {
+                actionButtons.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('scroll', () => {
+            if (!scrollUnlocked) return;
+
+            const scrollTop = window.scrollY;
+            const maxScroll = document.body.scrollHeight - window.innerHeight;
+            const t = Math.min(Math.max(scrollTop / maxScroll, 0), 1);
+
+            cameraSlider.value = t;
+            sliderValDisplay.innerText = t.toFixed(2);
+            
+            if(t > 0.179){
+                contentBoxEl.classList.add('top-right');
+                if(t > 0.179 && t < 0.5){
+                    sidebarDesc.innerText = "Peter Parker faces a new status quo where his secret identity is restored, leading to a chaotic life with new friends and foes. As a full-time hero in a world that has forgotten him, Peter faces intense pressure and a potential transformation while navigating short, action-packed adventures."; 
+                } else if(t > 0.5 && t < 0.8){
+                    sidebarDesc.innerText = "Exposed Mechanical Wristlets: External metallic gauntlets are mounted directly over the fabric for quick field repairs.\nDual-Tap Palm Matrix: A specialized pressure plate prevents accidental firing by requiring a specific multi-finger squeeze.\n E.V. Integrated AI Core: An isolated, onboard digital companion handles real-time tactical environmental scans without external networks.\n Biometric Interface Lining: Woven sensor arrays track physical vitals and feed diagnostic health data back to Peter's terminal."; 
+                } else {
+                    sidebarDesc.innerText = "You have explored the sequence states successfully."; 
+                }
+            } else {
+                contentBoxEl.classList.remove('top-right');
+                sidebarDesc.innerText = "Scroll down the page to smoothly ";
+                actionButtons.style.display = 'flex';
+            }
+
+            updateButtonVisibility();
+
+            camera.position.set(
+                THREE.MathUtils.lerp(cameraPose2.x, cameraPose3.x, t),
+                THREE.MathUtils.lerp(cameraPose2.y, cameraPose3.y, t),
+                THREE.MathUtils.lerp(cameraPose2.z, cameraPose3.z, t)
+            );
+
+            controls.target.set(
+                THREE.MathUtils.lerp(cameraPose2.targetX, cameraPose3.targetX, t),
+                THREE.MathUtils.lerp(cameraPose2.targetY, cameraPose3.targetY, t),
+                THREE.MathUtils.lerp(cameraPose2.targetZ, cameraPose3.targetZ, t)
+            );
+            controls.update();
+        });
+
+        document.getElementById('debug-btn').addEventListener('click', () => {
+            console.log(`Position: x: ${camera.position.x.toFixed(2)}, y: ${camera.position.y.toFixed(2)}, z: ${camera.position.z.toFixed(2)}`);
+            console.log(`Target: x: ${controls.target.x.toFixed(2)}, y: ${controls.target.y.toFixed(2)}, z: ${controls.target.z.toFixed(2)}`);
+            alert("Current camera coordinates logged to console.");
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionManager();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            if (mixer) mixer.update(delta);
+            controls.update(); 
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
