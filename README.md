@@ -7,7 +7,7 @@ An interactive 3D web experience built with **Three.js**, **GSAP**, and **FBX An
 ## 🚀 Live Demo
 
 Check out the live project here:  
-👉 **[Spider-Man Multiversos Demo](https://spider-by-jd.netlify.app/)**
+👉 **[Spider-Man Website  Demo](https://spider-by-jd.netlify.app/)**
 
 ---
 
