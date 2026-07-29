@@ -41,4 +41,6 @@ Check out the live project here:
 ├── 1ed.fbx                     # Secondary 3D animation clip asset
 └── pages/
     └── tom-holland/
-        └── spiderman1.html     # Dedicated character breakdown page
+        ├── spiderman1.html     # Dedicated character breakdown page
+        ├── spiderman2.html  
+        └── spiderman3.html
